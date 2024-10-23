@@ -286,5 +286,123 @@ document.addEventListener('DOMContentLoaded', function() {
     resizeCanvas();
 });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('uploadZone');
+    const chartInput = document.getElementById('chartInput');
+    const analysisCanvas = document.getElementById('analysisCanvas');
+    const ctx = analysisCanvas.getContext('2d');
+
+    uploadZone.addEventListener('click', () => {
+        chartInput.click();
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = '#00b894';
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.style.borderColor = '#384056';
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            processChart(file);
+        }
+    });
+
+    chartInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            processChart(file);
+        }
+    });
+
+    function processChart(file) {
+        if (!file.type.startsWith('image/')) {
+            alert('Por favor, selecione uma imagem válida.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                analysisCanvas.width = img.width;
+                analysisCanvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                analyzePattern();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function analyzePattern() {
+        // Simulação de Identificação de Padrões Simples Baseados em Preços
+        // Neste exemplo, vamos detectar um FVG (Fair Value Gap) e usar lógica básica para identificar zonas.
+        const examplePriceData = {
+            open: 20400,
+            high: 20450,
+            low: 20430,
+            close: 20435
+        };
+
+        // Exemplo de lógica para detectar um FVG baseado em dados simulados:
+        const detectedFVG = detectFVG(examplePriceData);
+        const detectedBreaker = detectBreaker(examplePriceData);
+
+        if (detectedFVG || detectedBreaker) {
+            const signal = {
+                direction: detectedBreaker ? 'Venda' : 'Compra',
+                entryPrice: detectedFVG ? examplePriceData.close : examplePriceData.low,
+                stopLoss: detectedFVG ? examplePriceData.low : examplePriceData.open,
+                takeProfit: detectedFVG ? examplePriceData.close + 20 : examplePriceData.open - 20,
+                riskReward: '1:2.5',
+                probability: 'Alta'
+            };
+            displayTradingSignal(signal);
+        } else {
+            alert('Nenhum padrão de trading foi identificado no gráfico.');
+            document.querySelector('.signal-panel').style.display = 'none';
+        }
+    }
+
+    // Função Simples para Detectar FVGs:
+    function detectFVG(data) {
+        // Padrão FVG se houver uma diferença significativa entre preço de alta e de baixa
+        return (data.high - data.low) > 15; // Critério exemplo
+    }
+
+    // Função Simples para Detectar Breakers:
+    function detectBreaker(data) {
+        // Padrão Breaker se houver um rompimento seguido de reteste no fechamento
+        return data.close < data.open && (data.high - data.close) < 10; // Critério exemplo
+    }
+
+    function displayTradingSignal(signal) {
+        document.getElementById('tradeDirection').textContent = signal.direction;
+        document.getElementById('entryPrice').textContent = signal.entryPrice;
+        document.getElementById('stopLoss').textContent = signal.stopLoss;
+        document.getElementById('takeProfit').textContent = signal.takeProfit;
+        document.getElementById('riskReward').textContent = signal.riskReward;
+        document.getElementById('tradeProbability').textContent = signal.probability;
+        document.querySelector('.signal-panel').style.display = 'block';
+    }
+
+    // Inicialização responsiva do canvas
+    function resizeCanvas() {
+        const parent = analysisCanvas.parentElement;
+        analysisCanvas.width = parent.clientWidth - 40; // 40px para padding
+        analysisCanvas.height = analysisCanvas.width * 0.6;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+});
+</script>
 </body>
 </html>
