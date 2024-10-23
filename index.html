@@ -706,5 +706,69 @@ document.addEventListener('DOMContentLoaded', function() {
         "container_id": "tradingview_98f87"
     });
 </script>
+<!-- Widget do TradingView com seleção de timeframe -->
+<div class="tradingview-widget-container">
+    <div id="tradingview_98f87"></div>
+</div>
+
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script type="text/javascript">
+    new TradingView.widget({
+        "width": "100%",
+        "height": 500,
+        "symbol": "FX:EURUSD",
+        "interval": "1", // Intervalo inicial de 1 minuto
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "allow_symbol_change": true,
+        "container_id": "tradingview_98f87",
+        "withdateranges": true, // Permite escolher datas e intervalos de tempo
+        "show_popup_button": true, // Mostra um botão para ver em popup
+        "popup_width": "1000",
+        "popup_height": "650",
+        "studies": [
+            "RSI@tv-basicstudies" // Inclui o indicador RSI como exemplo
+        ]
+    });
+</script>
+<script>
+async function fetchMarketData(symbol, interval) {
+    const apiKey = "SUA_CHAVE_DE_API_ALPHA_VANTAGE";
+    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&apikey=${apiKey}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const timeSeriesKey = `Time Series (${interval})`;
+        const timeSeries = data[timeSeriesKey];
+        
+        // Extraindo o dado mais recente
+        const latestTime = Object.keys(timeSeries)[0];
+        const latestData = timeSeries[latestTime];
+
+        console.log(`Últimos dados de ${symbol} (${interval}):`, latestData);
+        return {
+            open: parseFloat(latestData["1. open"]),
+            high: parseFloat(latestData["2. high"]),
+            low: parseFloat(latestData["3. low"]),
+            close: parseFloat(latestData["4. close"])
+        };
+    } catch (error) {
+        console.error("Erro ao buscar dados de mercado:", error);
+    }
+}
+
+// Exemplo de uso com seleção dinâmica de timeframe
+const symbol = "EURUSD";
+const interval = "5min"; // Usuário escolhe "1min", "5min", "15min", "30min", etc.
+fetchMarketData(symbol, interval).then(data => {
+    console.log("Dados recebidos:", data);
+    // Use esses dados para análise
+});
+</script>
 </body>
 </html>
